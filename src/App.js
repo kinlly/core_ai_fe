@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+const TEMP = [0.0, 0.3, 0.5, 0.7];
+
 function App() {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,11 +26,14 @@ function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           conversation: conversationForBE,
-          temperatures: [0.3, 0.5, 0.7],
+          temperatures: TEMP,
         }),
       });
       const data = await res.json();
-      setCandidates(data.candidates.map((c) => c.response.replaceAll('</s>', '')));
+      setCandidates(data.candidates.map((c) => ({
+        value: c.response.replaceAll('</s>', ''),
+        dislike: false
+      })));
 
     } catch (err) {
       console.error(err);
@@ -46,7 +51,7 @@ function App() {
     const selected = answer === '' ? manualInput.trim() : answer;
     if (!selected) return;
 
-    setConversation([...conversation, { question: prompt, answer: selected, rejected: candidates.filter(c => c && c !== selected) }]);
+    setConversation([...conversation, { question: prompt, answer: selected, rejected: candidates.filter(c => !!c && c.dislike).map((c)=> c.value) }]);
     setPrompt('');
     setCandidates([]);
     setManualInput('');
@@ -130,22 +135,37 @@ function App() {
       {candidates.length > 0 && (
         <div style={{ marginTop: 20 }}>
           <h3>Selecciona la respuesta correcta o escribe la tuya</h3>
-          {candidates.map((c, i) => (
-            <div key={i} style={{ margin: '5px 0' }}>
-              <button onClick={() => handleSelect(c)} style={{ padding: 8, width: '100%' }}>
-                {c || <em>Escribir manualmente...</em>}
-              </button>
-            </div>
+          {candidates.filter((c)=> !!c.value).map((c, i) => (
+            <>
+              <div style={{ display: 'flex' }}>
+                <span style={{ width: '20px', padding: 8, marginTop: 5 }}>
+                  {TEMP[i]}
+                </span>
+                <span style={{ width: '100%', padding: 8, marginTop: 5 }}>
+                  {c.value}
+                </span>
+                <button onClick={() => setCandidates((prev) => prev.map((p, indx) => indx !== i ? p : { ...p, dislike: !p.dislike }))} style={{ padding: 8, width: '50px', border: c.dislike ? '5px solid lime' : '5px solid transparent' }}>
+                  👎
+                </button>
+                <button onClick={() => handleSelect(c.value)} style={{ padding: 8, width: '100px' }}>
+                  Select
+                </button>
+              </div>
+              <hr></hr>
+            </>
           ))}
-          {candidates.includes('') && (
+          <div style={{ width: '100%', overflow: 'hidden' }}>
             <input
               type="text"
               placeholder="Escribe tu respuesta..."
               value={manualInput}
               onChange={e => setManualInput(e.target.value)}
-              style={{ width: '100%', padding: 8, marginTop: 5 }}
+              style={{ width: '98%', padding: 8, marginTop: 5 }}
             />
-          )}
+            <button onClick={() => handleSelect(manualInput)} style={{ padding: 8, width: '100%' }}>
+              Select
+            </button>
+          </div>
         </div>
       )}
 
