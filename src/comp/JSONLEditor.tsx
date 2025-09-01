@@ -1,11 +1,17 @@
 import React from "react";
 import { JSONEditorCard } from "./JSONEditorCard";
 import { useToast } from "./Toast";
+import { JSONEditorLeftBar } from "./JSONEditorLeftBar";
+import { BookEditor } from "./BookEditor";
 
 export function JSONLEditor() {
     const [files, setFiles] = React.useState<string[]>([]);
     const [data, setData] = React.useState<any[]>([]);
-    const [bookChapter, setBookChapter] = React.useState('')
+    const [bookChapterIndex, setBookChapterIndex] = React.useState(-1)
+    const [bookChapter, setBookChapter] = React.useState<{
+        line: string;
+        type: string;
+    }[]>();
     const [selectedFile, setSelectedFile] = React.useState<string | null>(null);
     const { showToast } = useToast();
 
@@ -20,7 +26,17 @@ export function JSONLEditor() {
     async function setOpenBookChapter(chapterNumber: number) {
         const res = await fetch(`http://127.0.0.1:8000/book/${chapterNumber}`);
         const chapter = await res.json();
-        setBookChapter(chapter.line);
+        const parsed = (chapter.line as string)
+            .replace(/\\n/g, '\n')        // convertir "\n" en saltos reales
+            .split('\n')                  // dividir por línea
+            .map(l => l.trim())           // quitar espacios delante y detrás
+            .filter(l => !/^\d+$/.test(l))// quitar solo números
+            .map(l => ({
+                line: l,
+                type: /^[^:]+:/.test(l) ? "character" : "description"
+            }));
+
+        setBookChapter(parsed);
     }
 
     async function loadFile(file: string) {
@@ -31,93 +47,83 @@ export function JSONLEditor() {
         setData(json);
     }
 
+    const reset = () => {
+        setBookChapter(undefined);
+    }
+
     return (
         <div style={{ display: "flex", height: "100vh", width: "100%" }}>
             {/* Sidebar izquierda */}
-            <div
-                style={{
-                    width: "250px",
-                    flexShrink: 0,
-                    padding: "10px",
-                    overflowY: "auto",
-                    top: 0,
-                    left: 0,
-                    bottom: 0,
-                }}
-            >
-                <h3>Available files</h3>
-                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                    {files.map((f) => (
-                        <li key={f} style={{ marginBottom: "8px" }}>
-                            <button
-                                onClick={() => loadFile(f)}
-                                style={{
-                                    width: "100%",
-                                    textAlign: "left",
-                                    padding: "6px 8px",
-                                    border: "1px solid #ddd",
-                                    background:
-                                        f === selectedFile ? "#e0e0e0" : "#fff",
-                                    cursor: "pointer",
-                                }}
-                            >
-                                {f}
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            </div>
-
+            <JSONEditorLeftBar files={files} loadFile={loadFile} selectedFile={selectedFile} />
             {/* Panel derecho */}
             <div
                 style={{
                     flex: 1,
                     padding: "20px",
-                    overflowY: "auto",
-                    width: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    overflow: "hidden", // evita que se salga nada del panel derecho
                 }}
             >
-                {!!bookChapter && <pre>{bookChapter}</pre>}
-                {selectedFile ? (
-                    <>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }} >
-                            <h4>Content of {selectedFile}</h4>
-                            <h4 onClick={() => {
-                                if (!bookChapter) {
-                                    const splittedString = selectedFile.split('.');
-                                    const potencialChapterNumber = splittedString[1];
-                                    try {
-                                        const chapterNumber = parseInt(potencialChapterNumber);
-                                        setOpenBookChapter(chapterNumber);
-                                    } catch (e) {
-                                        showToast({ message: 'Chapter not found', type: 'error' });
-                                    }
-                                } else {
-                                    setBookChapter('')
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <h4>Content of {selectedFile}</h4>
+                    <h4
+                        style={{ cursor: "pointer" }}
+                        onClick={() => {
+                            if (!selectedFile) return;
+                            if (!bookChapter) {
+                                const splittedString = selectedFile.split(".");
+                                const potencialChapterNumber = splittedString[1];
+                                try {
+                                    const chapterNumber = parseInt(potencialChapterNumber);
+                                    setOpenBookChapter(chapterNumber);
+                                    setBookChapterIndex(chapterNumber - 1)
+                                } catch (e) {
+                                    showToast({ message: "Chapter not found", type: "error" });
                                 }
-                            }}> {bookChapter ? '📘 Close book 📘' : '📖 Open book 📖'} </h4>
-                        </div>
-                        <div
-                            style={{
-                                whiteSpace: "pre-wrap",
-                                wordWrap: "break-word",
-                            }}
-                        >
-                            {data.map((l, i) => (
-                                <JSONEditorCard
-                                    key={selectedFile + i}
-                                    record={l}
-                                    index={i}
-                                    selectedFile={selectedFile!}
-                                    reload={() => loadFile(selectedFile!)}
-                                />)
-                            )}
-                        </div>
-                    </>
-                ) : (
-                    <p>Select a file to view its content</p>
-                )}
+                            } else {
+                                reset();
+                            }
+                        }}
+                    >
+                        {bookChapter ? "📘 Close book 📘" : "📖 Open book 📖"}
+                    </h4>
+                </div>
+                {
+                    !!bookChapter && <BookEditor
+                        bookChapter={bookChapter!}
+                        bookChapterIndex={bookChapterIndex}
+                        reset={reset}
+                        setBookChapterIndex={setBookChapterIndex}
+                    />
+                }
+                <div
+                    style={{
+                        flex: 1,
+                        overflowY: "auto",
+                        minHeight: 0, // clave para que el scroll funcione bien en flexbox
+                    }}
+                >
+                    {selectedFile ? (
+                        <>
+
+                            <div style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
+                                {data.map((l, i) => (
+                                    <JSONEditorCard
+                                        key={selectedFile + i}
+                                        record={l}
+                                        index={i}
+                                        selectedFile={selectedFile!}
+                                        reload={() => loadFile(selectedFile!)}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    ) : (
+                        <p>Select a file to view its content</p>
+                    )}
+                </div>
             </div>
-        </div>
+        </div >
     );
 }
