@@ -12,16 +12,15 @@ body {
   height: 100vh;
 }
 
-/* Layout principal */
 .app-layout {
   display: flex;
   height: 100%;
   width: 100%;
 }
 
-/* NAVBAR lateral */
 .sidebar {
-  width: 200px;
+  max-width: 15%;
+  width: 15%;
   background: #111;
   padding: 20px;
   display: flex;
@@ -42,13 +41,13 @@ body {
   cursor: pointer;
 }
 
-/* Chat */
 .chat-container {
   display: flex;
   flex-direction: column;
   flex: 1;
   height: 100vh;
-  max-width: 100%;
+  max-width: 81%;
+  width: 81%;
 }
 
 .chat-container-wrapper {
@@ -175,25 +174,30 @@ body {
 }
 
 .messages {
-  scrollbar-width: thin;             /* Firefox */
-  scrollbar-color: #555 #181818;     /* thumb, track */
+  scrollbar-width: thin;
+  scrollbar-color: #555 #181818;
 }
 
-/* Chrome, Edge, Safari */
-.messages::-webkit-scrollbar {
+::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
 
-.messages::-webkit-scrollbar-track {
-  background: #181818;   /* color del fondo */
+::-webkit-scrollbar-track {
+  background: #181818;
 }
 
-.messages::-webkit-scrollbar-thumb {
-  background-color: #555; /* color del scroll */
-  border-radius: 10px;    /* bordes redondeados */
-  border: 2px solid #181818; /* espacio alrededor */
+::-webkit-scrollbar-thumb {
+  background-color: #555;
+  border-radius: 10px;
+  border: 2px solid #181818;
 }
 
-.messages::-webkit-scrollbar-thumb:hover {
-  background-color: #777; /* color al pasar el mouse */
+::-webkit-scrollbar-thumb:hover {
+  background-color: #777;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #555 #181818;
 }

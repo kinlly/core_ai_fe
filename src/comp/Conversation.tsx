@@ -1,19 +1,20 @@
 import React, { useEffect, useRef, useState } from "react";
+import { CandidateType, ConversationClientType, ConversationType, DialogType } from "../global.type";
 
 export function Conversation() {
     const TEMP = [0.0, 0.3, 0.5, 0.7];
     const [prompt, setPrompt] = useState('');
     const [loading, setLoading] = useState(false);
-    const [candidates, setCandidates] = useState([]);
-    const [conversation, setConversation] = useState([]);
+    const [candidates, setCandidates] = useState<CandidateType[]>([]);
+    const [conversation, setConversation] = useState<ConversationClientType[]>([]);
     const [manualInput, setManualInput] = useState('');
-    const messagesEndRef = useRef(null);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [conversation, candidates]);
 
-    const generateResponses = async (prompt) => {
+    const generateResponses = async (prompt: string) => {
         setLoading(true);
         try {
             const conversationForBE = conversation.flatMap(c => [
@@ -31,10 +32,13 @@ export function Conversation() {
                     temperatures: TEMP,
                 }),
             });
-            const data = await res.json();
+            const data = await res.json() as {
+                candidates: { response: string }[]
+            };
             setCandidates(data.candidates.map((c) => ({
-                value: c.response.replaceAll('</s>', ''),
-                dislike: false
+                value: (c.response as any).replaceAll('</s>', ''),
+                dislike: false,
+                like: false,
             })));
 
         } catch (err) {
@@ -51,7 +55,7 @@ export function Conversation() {
         setPrompt('');
     };
 
-    const handleSelect = (answer) => {
+    const handleSelect = (answer: string) => {
         const selected = answer === '' ? manualInput.trim() : answer;
         if (!selected) return;
 
@@ -68,12 +72,26 @@ export function Conversation() {
     };
 
     const handleExport = () => {
-        const dataset = [];
-        const datasetDPO = [];
+        type Dialog = {
+            from: string,
+            value: string
+        }
+
+        type Conversation = {
+            conversations: Dialog[]
+        }
+
+        type DPOConversationLines = {
+            chosen: Conversation,
+            rejected: Conversation
+        }
+
+        const dataset: Conversation[] = [];
+        const datasetDPO: DPOConversationLines[] = [];
 
         conversation.forEach((c, idx) => {
             // Construir la conversación acumulada hasta este punto
-            const convHistory = [];
+            const convHistory: DialogType[] = [];
             for (let i = 0; i <= idx; i++) {
                 convHistory.push({ from: "user", value: conversation[i].question });
                 convHistory.push({ from: "assistant", value: conversation[i].answer });
@@ -208,7 +226,7 @@ export function Conversation() {
                     {loading ? '✨' : `📨`}
                 </button>
                 <button onClick={handleClear} disabled={loading} style={{ cursor: loading ? "not-allowed" : "pointer" }}>
-                    {loading ? '✨' : `❌`}
+                    {loading ? '✨' : `🗑️`}
                 </button>
             </div>
             <div style={{ position: 'sticky', bottom: 0, alignSelf: 'center', paddingBottom: '5px' }}>

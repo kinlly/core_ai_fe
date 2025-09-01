@@ -1,9 +1,10 @@
 import React from "react";
+import { SFTType } from "../global.type";
 
 const Loader = <>LOADING....</>;
 
 export function MainData() {
-    const [data, setData] = React.useState([]);
+    const [data, setData] = React.useState<SFTType[]>([]);
 
     React.useEffect(() => {
         (async () => {
