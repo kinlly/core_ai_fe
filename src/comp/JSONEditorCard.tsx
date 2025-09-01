@@ -16,7 +16,7 @@ export function JSONEditorCard({ record, index, selectedFile, reload }: RecordRo
 
     async function handleSave() {
         const updated = { instruction, output };
-        try{
+        try {
             await fetch(`http://127.0.0.1:8000/files/${selectedFile}/${index}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -24,27 +24,27 @@ export function JSONEditorCard({ record, index, selectedFile, reload }: RecordRo
             });
             reload();
             showToast({ message: "Save Success", type: "success" });
-        }catch(e){
+        } catch (e) {
             showToast({ message: "Error check logs", type: "error" });
         }
     }
 
     async function handleDelete() {
         if (window.confirm(`Delete line ${index}?`)) {
-            try{
+            try {
                 await fetch(`http://127.0.0.1:8000/files/${selectedFile}/${index}`, {
                     method: "DELETE",
                 });
                 reload();
                 showToast({ message: "Delete Success", type: "success" });
-            }catch(e){
+            } catch (e) {
                 showToast({ message: "Error check logs", type: "error" });
             }
         }
     }
 
     const commentStyle: React.CSSProperties = {
-        width: "90%",
+        width: "97%",
         minHeight: "140px",
         padding: "6px",
         borderRadius: "4px",
@@ -57,9 +57,11 @@ export function JSONEditorCard({ record, index, selectedFile, reload }: RecordRo
     return (
         <div
             style={{
-                borderRadius: "6px",
+                borderRadius: 0,
                 padding: "10px",
-                marginBottom: "12px",
+                marginBottom: "6px",
+                marginTop: "6px",
+                borderBottom: "2px solid #ffffff5e",
             }}
         >
             {isEditing ? (

@@ -160,7 +160,7 @@ export function Conversation() {
                         {candidates.map((c, i) => !c.value ? <></> : (
                             <div key={i} className="candidate-card" style={{ border: c.dislike ? '3px solid red' : c.like ? '3px solid lime' : '3px solid transparent' }}>
                                 <div className="candidate-header">
-                                    <span className="temp">Temp {TEMP[i]} </span> <span onClick={() => handleSelect(c.value)} style={{ cursor: pendingToAnswer ? "not-allowed" : "pointer" }}>✅</span>
+                                    <span className="temp">Temp {TEMP[i]} </span> <span onClick={() => handleSelect(c.value)} style={{ cursor: "pointer" }}>✅</span>
                                 </div>
                                 <div className="candidate-body">
                                     <p>{c.value}</p>
@@ -222,12 +222,16 @@ export function Conversation() {
                     onChange={e => setPrompt(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && handleSend()}
                 />
+
                 <button onClick={handleSend} disabled={pendingToAnswer} style={{ marginRight: '8px', cursor: pendingToAnswer ? "not-allowed" : "pointer" }}>
                     {loading ? '✨' : `📨`}
                 </button>
-                <button onClick={handleClear} disabled={loading} style={{ cursor: loading ? "not-allowed" : "pointer" }}>
-                    {loading ? '✨' : `🗑️`}
-                </button>
+
+                {!!conversation.length && (
+                    <button onClick={handleClear} disabled={loading} style={{ cursor: loading ? "not-allowed" : "pointer" }}>
+                        {loading ? '✨' : `🗑️`}
+                    </button>
+                )}
             </div>
             <div style={{ position: 'sticky', bottom: 0, alignSelf: 'center', paddingBottom: '5px' }}>
                 <p style={{ margin: 0 }}>🐱🐱 This Chat will contain <b>always</b> errors 🐱🐱</p>

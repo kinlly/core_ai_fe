@@ -9,9 +9,6 @@ export function Menu(props: { setView: React.Dispatch<React.SetStateAction<strin
                 <li onClick={() => setView('conversation')}>
                     Conversation
                 </li>
-                <li onClick={() => setView('mainData')}>
-                    Main Data
-                </li>
                 <li onClick={() => setView('JSONLEditor')}>
                     JSONL Editor
                 </li>

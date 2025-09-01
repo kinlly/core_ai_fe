@@ -15,6 +15,7 @@ export function JSONLEditor() {
     }, []);
 
     async function loadFile(file: string) {
+        setData([]);
         setSelectedFile(file);
         const res = await fetch(`http://127.0.0.1:8000/files/${file}`);
         const json = await res.json();
@@ -78,7 +79,7 @@ export function JSONLEditor() {
                         >
                             {data.map((l, i) => (
                                 <JSONEditorCard
-                                    key={i}
+                                    key={selectedFile + i}
                                     record={l}
                                     index={i}
                                     selectedFile={selectedFile!}
