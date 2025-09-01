@@ -1,24 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 const TEMP = [0.0, 0.3, 0.5, 0.7];
 
 function App() {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
-  const [candidates, setCandidates] = useState([]); // respuestas generadas
-  const [conversation, setConversation] = useState([]); // confirmadas
+  const [candidates, setCandidates] = useState([]);
+  const [conversation, setConversation] = useState([]);
   const [manualInput, setManualInput] = useState('');
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [conversation, candidates]);
 
   const generateResponses = async (prompt) => {
     setLoading(true);
     try {
-      // Convertimos la conversación confirmada a formato que espera BE
       const conversationForBE = conversation.flatMap(c => [
         { role: 'user', content: c.question },
         { role: 'assistant', content: c.answer }
       ]);
 
-      // Añadimos la nueva pregunta del usuario
       conversationForBE.push({ role: 'user', content: prompt });
 
       const res = await fetch('http://127.0.0.1:8000/generate', {
@@ -45,14 +48,22 @@ function App() {
   const handleSend = () => {
     if (!prompt.trim()) return;
     generateResponses(prompt);
+    setConversation([...conversation, { question: prompt, answer: '', rejected: [] }]);
+    setPrompt('');
   };
 
   const handleSelect = (answer) => {
     const selected = answer === '' ? manualInput.trim() : answer;
     if (!selected) return;
 
-    setConversation([...conversation, { question: prompt, answer: selected, rejected: candidates.filter(c => !!c && c.dislike).map((c)=> c.value) }]);
-    setPrompt('');
+    const last = conversation[conversation.length - 1];
+    const updated = {
+      ...last,
+      answer: selected,
+      rejected: candidates.filter(c => c.dislike).map(c => c.value),
+    };
+
+    setConversation([...conversation.slice(0, -1), updated]);
     setCandidates([]);
     setManualInput('');
   };
@@ -114,84 +125,107 @@ function App() {
   };
 
   return (
-    <div style={{ padding: 20, fontFamily: 'sans-serif', maxWidth: 800, margin: 'auto' }}>
-      <h1>Chat Curador</h1>
-      <p><i>Esto deberia ir directamente on click save al server un save history y generar el JSON en el PC y poder hablar con la IA desde la tablet de chill</i></p>
-
-      <div>
-        <input
-          type="text"
-          placeholder="Escribe tu pregunta..."
-          value={prompt}
-          onChange={e => setPrompt(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSend()}
-          style={{ width: '70%', padding: 8 }}
-        />
-        <button onClick={handleSend} disabled={loading} style={{ marginLeft: 8 }}>
-          {loading ? 'Generando...' : 'Generar'}
-        </button>
-      </div>
-
-      {candidates.length > 0 && (
-        <div style={{ marginTop: 20 }}>
-          <h3>Selecciona la respuesta correcta o escribe la tuya</h3>
-          {candidates.filter((c)=> !!c.value).map((c, i) => (
-            <>
-              <div style={{ display: 'flex' }}>
-                <span style={{ width: '20px', padding: 8, marginTop: 5 }}>
-                  {TEMP[i]}
-                </span>
-                <span style={{ width: '100%', padding: 8, marginTop: 5 }}>
-                  {c.value}
-                </span>
-                <button onClick={() => setCandidates((prev) => prev.map((p, indx) => indx !== i ? p : { ...p, dislike: !p.dislike }))} style={{ padding: 8, width: '50px', border: c.dislike ? '5px solid lime' : '5px solid transparent' }}>
-                  👎
-                </button>
-                <button onClick={() => handleSelect(c.value)} style={{ padding: 8, width: '100px' }}>
-                  Select
-                </button>
-              </div>
-              <hr></hr>
-            </>
-          ))}
-          <div style={{ width: '100%', overflow: 'hidden' }}>
-            <input
-              type="text"
-              placeholder="Escribe tu respuesta..."
-              value={manualInput}
-              onChange={e => setManualInput(e.target.value)}
-              style={{ width: '98%', padding: 8, marginTop: 5 }}
-            />
-            <button onClick={() => handleSelect(manualInput)} style={{ padding: 8, width: '100%' }}>
-              Select
-            </button>
-          </div>
-        </div>
-      )}
-
-      {conversation.length > 0 && (
-        <div style={{ marginTop: 30 }}>
-          <h3>Conversación Confirmada</h3>
-          <div style={{ whiteSpace: 'pre-wrap', background: '#f0f0f0', padding: 10 }}>
+    <div className="app-layout">
+      {/* NAVBAR IZQUIERDA */}
+      <div className="chat-container">
+        <div className="chat-container-wrapper">
+          <div className="messages">
             {conversation.map((c, i) => (
               <div key={i}>
-                Q: {c.question}
-                <br />
-                A: {c.answer}
-                <br />
-                <hr />
+                {c.question && (
+                  <div className="bubble user">{c.question}</div>
+                )}
+                {c.answer && (
+                  <div className="bubble assistant">{c.answer}</div>
+                )}
               </div>
             ))}
+            {candidates.length > 0 && (
+              <div className="candidate-grid">
+                {candidates.map((c, i) => !c.value ? <></> : (
+                  <div key={i} className="candidate-card" style={{ border: c.dislike ? '3px solid red' : c.like ? '3px solid lime' : '3px solid transparent' }}>
+                    <div className="candidate-header">
+                      <span className="temp">Temp {TEMP[i]} </span> <button onClick={() => handleSelect(c.value)}>✔</button>
+                    </div>
+                    <div className="candidate-body">
+                      <p>{c.value}</p>
+                    </div>
+                    <div className="candidate-actions">
+                      <button
+                        onClick={() =>
+                          setCandidates(prev =>
+                            prev.map((p, idx) =>
+                              idx !== i ? p : { ...p, dislike: false, like: !p.like }
+                            )
+                          )
+                        }
+                      >
+                        👍
+                      </button>
+                      <button
+                        onClick={() =>
+                          setCandidates(prev =>
+                            prev.map((p, idx) =>
+                              idx !== i ? p : { ...p, like: false, dislike: !p.dislike }
+                            )
+                          )
+                        }
+                      >
+                        👎
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="manual-input">
+                  <input
+                    type="text"
+                    placeholder="Escribe tu respuesta..."
+                    value={manualInput}
+                    onChange={e => setManualInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleSelect('')}
+                  />
+                  <button onClick={() => handleSelect('')}>Confirmar</button>
+                </div>
+              </div>
+            )}
+
+            <div ref={messagesEndRef} />
           </div>
 
-          <button onClick={handleExport} style={{ marginTop: 10, marginRight: 10 }}>
-            Exportar JSON
-          </button>
-          <button onClick={handleClear} style={{ marginTop: 10 }}>
-            Limpiar
-          </button>
+          <div className="input-area">
+            {!!conversation.length && (
+              <button onClick={handleExport} disabled={loading} style={{ marginRight: '8px' }}>
+                💾
+              </button>
+            )}
+            <input
+              type="text"
+              disabled={!!candidates.length}
+              placeholder={candidates.length ? "Elige una respuesta o escribe la tuya" : "Escribe tu pregunta..."}
+              value={prompt}
+              onChange={e => setPrompt(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSend()}
+            />
+            <button onClick={handleSend} disabled={loading}>
+              {loading ? '⌛' : `📨`}
+            </button>
+          </div>
+          <div style={{ position: 'sticky', bottom: 0, alignSelf: 'center', paddingBottom: '5px' }}>
+            <p style={{ margin: 0 }}>🐱🐱 This Chat will contain <b>always</b> errors 🐱🐱</p>
+          </div>
         </div>
-      )}
+      </div>
+      <div className="sidebar">
+        <h2>Menú</h2>
+        <ul>
+          <li>Conversación</li>
+          <li>Historial</li>
+          <li><button onClick={handleClear} style={{ marginTop: 10 }}>
+            Limpiar
+          </button></li>
+        </ul>
+      </div>
     </div>
   );
 }
