@@ -20,7 +20,6 @@ body {
 
 .sidebar {
   max-width: 15%;
-  width: 15%;
   background: #111;
   padding: 20px;
   display: flex;
@@ -46,7 +45,7 @@ body {
   flex-direction: column;
   flex: 1;
   height: 100vh;
-  max-width: 81%;
+  max-width: 100%;
   width: 81%;
 }
 

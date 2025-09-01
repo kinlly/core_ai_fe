@@ -1,10 +1,13 @@
 import React from "react";
 import { JSONEditorCard } from "./JSONEditorCard";
+import { useToast } from "./Toast";
 
 export function JSONLEditor() {
     const [files, setFiles] = React.useState<string[]>([]);
     const [data, setData] = React.useState<any[]>([]);
+    const [bookChapter, setBookChapter] = React.useState('')
     const [selectedFile, setSelectedFile] = React.useState<string | null>(null);
+    const { showToast } = useToast();
 
     React.useEffect(() => {
         (async () => {
@@ -13,6 +16,12 @@ export function JSONLEditor() {
             setFiles(json.files);
         })();
     }, []);
+
+    async function setOpenBookChapter(chapterNumber: number) {
+        const res = await fetch(`http://127.0.0.1:8000/book/${chapterNumber}`);
+        const chapter = await res.json();
+        setBookChapter(chapter.line);
+    }
 
     async function loadFile(file: string) {
         setData([]);
@@ -68,9 +77,26 @@ export function JSONLEditor() {
                     width: "100%",
                 }}
             >
+                {!!bookChapter && <pre>{bookChapter}</pre>}
                 {selectedFile ? (
                     <>
-                        <h4>Content of {selectedFile}</h4>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }} >
+                            <h4>Content of {selectedFile}</h4>
+                            <h4 onClick={() => {
+                                if (!bookChapter) {
+                                    const splittedString = selectedFile.split('.');
+                                    const potencialChapterNumber = splittedString[1];
+                                    try {
+                                        const chapterNumber = parseInt(potencialChapterNumber);
+                                        setOpenBookChapter(chapterNumber);
+                                    } catch (e) {
+                                        showToast({ message: 'Chapter not found', type: 'error' });
+                                    }
+                                } else {
+                                    setBookChapter('')
+                                }
+                            }}> {bookChapter ? '📘 Close book 📘' : '📖 Open book 📖'} </h4>
+                        </div>
                         <div
                             style={{
                                 whiteSpace: "pre-wrap",
