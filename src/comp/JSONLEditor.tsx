@@ -58,7 +58,7 @@ export function JSONLEditor() {
 
     return (
         <div style={{ display: "flex", height: "100vh", width: "100%" }}>
-            <JSONEditorLeftBar files={files} loadFile={loadFile} selectedFileName={selectedFileName} />
+            <JSONEditorLeftBar type="SFT" files={files} loadFile={loadFile} selectedFileName={selectedFileName} />
             <div
                 key={selectedFileName}
                 style={{

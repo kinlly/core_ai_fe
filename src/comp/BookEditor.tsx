@@ -48,7 +48,7 @@ export function BookEditor(props: {
             marginBottom: "10px",
         }}
     >
-        <div style={{ position: 'absolute', top: 0, right: 0 }} onClick={onClickEditBook}> {editBook ? 'Save' : 'Edit'} </div>
+        <div style={{ position: 'absolute', top: "30px", right: 0 }} onClick={onClickEditBook}> {editBook ? 'Save' : 'Edit'} </div>
         <div style={{
             overflow: "scroll",
             height: "100%",

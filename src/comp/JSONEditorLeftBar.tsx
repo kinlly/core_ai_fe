@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export function JSONEditorLeftBar(props: { files: { name: string, size: number }[], selectedFileName: string | null, loadFile: (file: string) => Promise<void> }) {
+export function JSONEditorLeftBar(props: { files: { name: string, size: number }[], selectedFileName: string | null, loadFile: (file: string) => Promise<void>, type: "SFT" | "Chapters" }) {
     const { files, loadFile, selectedFileName } = props;
     const [isOpen, setIsOpen] = useState(true);
 
@@ -25,8 +25,26 @@ export function JSONEditorLeftBar(props: { files: { name: string, size: number }
                 {isOpen ? "«" : "»"}
             </button>
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                {files.map((f) => (
-                    <li key={f.name} style={{ marginBottom: "8px" }}>
+                {files.map((f) => {
+                    let color = "transparent"; 
+                    if(props.type === "Chapters"){
+                        if(f.size < 5000) {
+                            color = "gray"
+                        }
+                        if(f.size < 4000) {
+                            color = "blue"
+                        }
+                        if(f.size < 3000){
+                            color = "purple"
+                        }
+                        if(f.size < 2000){
+                            color = "orange"
+                        }
+                        if(f.size < 1000){
+                            color = "red"
+                        }
+                    }
+                    return (<li key={f.name} style={{ marginBottom: "8px" }}>
                         <button
                             onClick={async () => await loadFile(f.name)}
                             style={{
@@ -34,7 +52,7 @@ export function JSONEditorLeftBar(props: { files: { name: string, size: number }
                                 textAlign: "left",
                                 padding: "6px 8px",
                                 border: f.name === selectedFileName ? "1px solid lime" : "1px solid #ddd",
-                                background: f.name === selectedFileName ? "#006400" : "transparent",
+                                background: f.name === selectedFileName ? "#006400" : color,
                                 cursor: "pointer",
                                 overflow: "hidden",
                             }}
@@ -42,7 +60,8 @@ export function JSONEditorLeftBar(props: { files: { name: string, size: number }
                             <div style={{ display: 'flex', color: 'white', justifyContent: 'space-between   ' }}><span>{f.name}</span><span>{f.size}</span></div>
                         </button>
                     </li>
-                ))}
+                    )
+                })}
             </ul>
         </div>
     )

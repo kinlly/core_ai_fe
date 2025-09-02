@@ -42,7 +42,7 @@ export function ChapterEditor() {
 
     return (
         <div style={{ display: "flex", height: "100%", width: "100%" }}>
-            <JSONEditorLeftBar files={files} loadFile={loadFile} selectedFileName={selectedFileName} />
+            <JSONEditorLeftBar type="Chapters" files={files} loadFile={loadFile} selectedFileName={selectedFileName} />
             <div
                 key={selectedFileName}
                 style={{
