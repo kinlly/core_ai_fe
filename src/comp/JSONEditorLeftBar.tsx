@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-export function JSONEditorLeftBar(props: { files: string[], selectedFile: string | null, loadFile: (file: string) => Promise<void> }) {
-    const { files, loadFile, selectedFile } = props;
+export function JSONEditorLeftBar(props: { files: { name: string, size: number }[], selectedFileName: string | null, loadFile: (file: string) => Promise<void> }) {
+    const { files, loadFile, selectedFileName } = props;
     const [isOpen, setIsOpen] = useState(true);
 
     return (
@@ -26,20 +26,20 @@ export function JSONEditorLeftBar(props: { files: string[], selectedFile: string
             </button>
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                 {files.map((f) => (
-                    <li key={f} style={{ marginBottom: "8px" }}>
+                    <li key={f.name} style={{ marginBottom: "8px" }}>
                         <button
-                            onClick={() => loadFile(f)}
+                            onClick={async () => await loadFile(f.name)}
                             style={{
                                 width: "100%",
                                 textAlign: "left",
                                 padding: "6px 8px",
-                                border: "1px solid #ddd",
-                                background:
-                                    f === selectedFile ? "#e0e0e0" : "#fff",
+                                border: f.name === selectedFileName ? "1px solid lime" : "1px solid #ddd",
+                                background: f.name === selectedFileName ? "#006400" : "transparent",
                                 cursor: "pointer",
+                                overflow: "hidden",
                             }}
                         >
-                            {f}
+                            <div style={{ display: 'flex', color: 'white', justifyContent: 'space-between   ' }}><span>{f.name}</span><span>{f.size}</span></div>
                         </button>
                     </li>
                 ))}

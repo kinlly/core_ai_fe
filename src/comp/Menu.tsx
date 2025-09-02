@@ -15,10 +15,13 @@ export function Menu(props: { setView: React.Dispatch<React.SetStateAction<strin
                 </button>
                 <ul style={{ justifyItems: isOpen ? 'unset' : 'center' }}>
                     <li onClick={() => setView('conversation')}>
-                        💬 {isOpen ? 'Conversation' : ''}
+                        💬💬 {isOpen ? 'Conversation' : ''}
                     </li>
                     <li onClick={() => setView('JSONLEditor')}>
-                        📄 {isOpen ? 'JSONL Editor' : ''}
+                        💬📄 {isOpen ? 'JSONL Editor' : ''}
+                    </li>
+                    <li onClick={() => setView('Chapters')}>
+                        📘📘 {isOpen ? 'Chapters Editor' : ''}
                     </li>
                 </ul>
             </div >

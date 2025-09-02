@@ -3,6 +3,7 @@ import { Conversation } from './comp/Conversation';
 import { Menu } from './comp/Menu';
 import { JSONLEditor } from "./comp/JSONLEditor";
 import { ToastProvider } from "./comp/Toast";
+import { ChapterEditor } from "./comp/ChapterEditor";
 
 function App() {
   const [view, setView] = React.useState('conversation');
@@ -18,6 +19,9 @@ function App() {
           )}
           {view === 'JSONLEditor' && (
             <JSONLEditor />
+          )}
+          {view === 'Chapters' && (
+            <ChapterEditor />
           )}
         </div>
         <Menu setView={setView} />

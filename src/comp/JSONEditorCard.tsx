@@ -4,11 +4,11 @@ import { useToast } from "./Toast";
 interface RecordRowProps {
     record: any;
     index: number;
-    selectedFile: string;
+    selectedFileName: string;
     reload: () => void;
 }
 
-export function JSONEditorCard({ record, index, selectedFile, reload }: RecordRowProps) {
+export function JSONEditorCard({ record, index, selectedFileName, reload }: RecordRowProps) {
     const [isEditing, setIsEditing] = React.useState(true);
     const [instruction, setInstruction] = React.useState(record.instruction || "");
     const [output, setOutput] = React.useState(record.output || "");
@@ -17,7 +17,7 @@ export function JSONEditorCard({ record, index, selectedFile, reload }: RecordRo
     async function handleSave() {
         const updated = { instruction, output };
         try {
-            await fetch(`http://127.0.0.1:8000/files/${selectedFile}/${index}`, {
+            await fetch(`http://127.0.0.1:8000/files/${selectedFileName}/${index}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(updated),
@@ -32,7 +32,7 @@ export function JSONEditorCard({ record, index, selectedFile, reload }: RecordRo
     async function handleDelete() {
         if (window.confirm(`Delete line ${index}?`)) {
             try {
-                await fetch(`http://127.0.0.1:8000/files/${selectedFile}/${index}`, {
+                await fetch(`http://127.0.0.1:8000/files/${selectedFileName}/${index}`, {
                     method: "DELETE",
                 });
                 reload();
